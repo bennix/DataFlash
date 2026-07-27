@@ -2,6 +2,8 @@
 
 本地 AI 数据分析流水线：拖拽节点构图 → 清洗 / 分析 / 可视化 / 报告 → 导出 MD / PDF / HTML。
 
+![DataFlash demo](docs/assets/demo.gif)
+
 **English:** [README below ↓](#dataflash-english)
 
 ---
@@ -94,6 +96,8 @@ cd frontend && npm test
 ## DataFlash (English)
 
 Local AI data-analysis pipeline: drag-and-drop nodes → clean / analyze / visualize / report → export Markdown, PDF, or HTML.
+
+![DataFlash demo](docs/assets/demo.gif)
 
 ### Features
 
