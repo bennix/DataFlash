@@ -16,17 +16,6 @@
 - **安全**：用户 / AI 代码默认在沙箱执行；ZenMux API Key **仅本机加密存储**，不进入仓库、不明文回传前端
 - **示例与导入导出**：预置示例工作流；支持 `.flow.json` 导入导出
 
-### 安全与密钥
-
-| 内容 | 是否进仓库 |
-| --- | --- |
-| 源码、示例数据集、内置自定义节点样例 | ✅ |
-| `instance/`（本地 SQLite、上传文件、用户自定义节点安装目录） | ❌ |
-| `~/.dataflash/.keyfile`、`.env`、真实 API Key | ❌ |
-| 前端构建产物 `app/static/dist`、`node_modules` | ❌（需本地构建） |
-
-请在应用「设置」中填写 ZenMux API Key。邀请注册：https://zenmux.ai/invite/GBQMC5
-
 ### 环境要求
 
 - Python ≥ 3.11（推荐 3.12）
@@ -113,17 +102,6 @@ Local AI data-analysis pipeline: drag-and-drop nodes → clean / analyze / visua
 - **Custom nodes**: upload `manifest.json` + `transform.py` (sandboxed AST allowlist); set `is_ai: true` to generate code from natural-language intent
 - **Security**: user/AI code runs in a sandbox by default; ZenMux API keys are **encrypted on this machine only** — never committed, never returned in plaintext to the browser
 - **Examples & I/O**: bundled example workflows; import/export `.flow.json`
-
-### Secrets
-
-| Item | In git? |
-| --- | --- |
-| Source, sample datasets, bundled custom-node samples | Yes |
-| `instance/` (SQLite, uploads, installed user nodes) | No |
-| `~/.dataflash/.keyfile`, `.env`, real API keys | No |
-| `app/static/dist`, `node_modules` | No (build locally) |
-
-Configure the ZenMux API key in **Settings**. Invite: https://zenmux.ai/invite/GBQMC5
 
 ### Requirements
 
