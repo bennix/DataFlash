@@ -1,0 +1,25 @@
+ticket_id,agent_id,created_at,priority,channel,status,resolve_hours,csat
+T01,A1,2024-06-01 09:12,P1,email,closed,3.5,2
+T02,A2,2024-06-01 10:05,P2,chat,closed,8.0,4
+T03,A3,2024-06-01 11:40,P3,email,closed,26.0,5
+T04,A1,2024-06-02 08:20,P1,phone,closed,2.0,1
+T05,A4,2024-06-02 14:15,P2,chat,open,,
+T06,A2,2024-06-02 16:50,P2,email,closed,12.5,3
+T07,A3,2024-06-03 09:00,P1,phone,closed,4.2,2
+T08,A5,2024-06-03 11:30,P3,chat,closed,30.0,5
+T09,A1,2024-06-03 15:10,P1,email,closed,1.8,3
+T10,A4,2024-06-04 10:00,P2,phone,closed,9.5,4
+T11,A2,2024-06-04 13:25,P1,chat,closed,5.0,2
+T12,A5,2024-06-04 17:40,P3,email,closed,40.0,4
+T13,A3,2024-06-05 09:55,P2,chat,closed,7.0,5
+T14,A1,2024-06-05 12:10,P1,phone,closed,2.5,1
+T15,A4,2024-06-05 16:00,P2,email,closed,11.0,3
+T16,A2,2024-06-06 08:40,P3,chat,closed,22.0,5
+T17,A5,2024-06-06 10:20,P1,email,closed,6.0,2
+T18,A3,2024-06-06 14:35,P2,phone,open,,
+T19,A1,2024-06-07 09:15,P1,chat,closed,3.0,3
+T20,A4,2024-06-07 11:50,P2,email,closed,10.0,4
+T21,A2,2024-06-07 15:05,P1,phone,closed,4.5,2
+T22,A5,2024-06-08 09:30,P3,chat,closed,28.0,5
+T23,A3,2024-06-08 13:00,P2,email,closed,8.5,4
+T24,A1,2024-06-08 16:20,P1,chat,closed,2.2,1

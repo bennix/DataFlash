@@ -1,0 +1,175 @@
+{
+  "id": "110-analysis-visualization",
+  "title": "乘客生存分析可视化",
+  "title_en": "Passenger Survival Analysis",
+  "description": "预置模板：读取示例乘客数据 → AI 清洗 → 筛选生还者 → 统计分析 → 散点图 → 报告 → 导出 PDF。拖入后可直接点「运行」（未配置 API Key 时后端可用 mock）。",
+  "description_en": "Starter template: load sample passenger data → AI clean → filter survivors → stats → scatter chart → report → export PDF. Click Run after loading (backend can mock without an API key).",
+  "dataset": "passengers.csv",
+  "graph": {
+    "format_version": 2,
+    "annotations": [
+      {
+        "type": "text",
+        "content": "从左侧「文件输入」开始，沿箭头跑完整条分析链路。",
+        "content_en": "Start from File Input on the left and follow the arrows through the pipeline.",
+        "position": { "x": 40, "y": 20 }
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n_file",
+        "type": "file_input",
+        "position": { "x": 40, "y": 120 },
+        "data": {
+          "label": "乘客数据",
+          "label_en": "Passenger data",
+          "params": {
+            "path": "{{DATASET_PATH}}"
+          }
+        }
+      },
+      {
+        "id": "n_clean",
+        "type": "ai_clean",
+        "position": { "x": 280, "y": 120 },
+        "data": {
+          "label": "清洗缺失值",
+          "label_en": "Clean missing values",
+          "params": {
+            "intent": "删除 Age 为空的行，并将 Sex、Embarked 去空格并转小写",
+            "intent_en": "Drop rows where Age is null; strip and lowercase Sex and Embarked",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_filter",
+        "type": "filter",
+        "position": { "x": 520, "y": 120 },
+        "data": {
+          "label": "筛选生还者",
+          "label_en": "Filter survivors",
+          "params": {
+            "expression": "Survived == 1"
+          }
+        }
+      },
+      {
+        "id": "n_analyze",
+        "type": "ai_analyze",
+        "position": { "x": 760, "y": 40 },
+        "data": {
+          "label": "描述统计",
+          "label_en": "Descriptive stats",
+          "params": {
+            "intent": "对生还乘客做描述统计，关注 Age、Fare、Pclass 分布",
+            "intent_en": "Descriptive stats for survivors, focusing on Age, Fare, and Pclass distributions",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_chart",
+        "type": "ai_chart",
+        "position": { "x": 760, "y": 220 },
+        "data": {
+          "label": "年龄×票价",
+          "label_en": "Age × Fare",
+          "params": {
+            "x": "Age",
+            "y": "Fare",
+            "color": "Pclass",
+            "intent": "散点图展示生还者年龄与票价关系，按舱位着色",
+            "intent_en": "Scatter plot of Age vs Fare for survivors, colored by Pclass",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_report",
+        "type": "ai_report",
+        "position": { "x": 1000, "y": 120 },
+        "data": {
+          "label": "分析报告",
+          "label_en": "Analysis report",
+          "params": {
+            "intent": "撰写乘客生存分析简报：样本量、年龄与票价特征、舱位差异",
+            "intent_en": "Write a short passenger survival brief: sample size, Age/Fare traits, and class differences",
+            "model": "anthropic/claude-opus-5"
+          }
+        }
+      },
+      {
+        "id": "n_export",
+        "type": "export",
+        "position": { "x": 1240, "y": 120 },
+        "data": {
+          "label": "导出 PDF",
+          "label_en": "Export PDF",
+          "params": {
+            "format": "pdf",
+            "path": "{{EXPORT_PATH}}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "n_file",
+        "sourceHandle": "table_out",
+        "target": "n_clean",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e2",
+        "source": "n_clean",
+        "sourceHandle": "table_out",
+        "target": "n_filter",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e3",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_analyze",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e4",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_chart",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e5",
+        "source": "n_analyze",
+        "sourceHandle": "stats_out",
+        "target": "n_report",
+        "targetHandle": "stats_in"
+      },
+      {
+        "id": "e6",
+        "source": "n_chart",
+        "sourceHandle": "figure_out",
+        "target": "n_report",
+        "targetHandle": "figure_in"
+      },
+      {
+        "id": "e7",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_report",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e8",
+        "source": "n_report",
+        "sourceHandle": "text_out",
+        "target": "n_export",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

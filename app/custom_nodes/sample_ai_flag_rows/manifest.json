@@ -1,0 +1,71 @@
+{
+  "id": "ai_flag_rows",
+  "label": "AI 行标记",
+  "label_en": "AI Flag Rows",
+  "description": "用自然语言描述标记规则，由 AI 生成沙箱代码，为符合条件的行新增 Flag 列。",
+  "category": "custom",
+  "is_ai": true,
+  "result_kind": "table",
+  "inputs": [
+    {
+      "id": "table_in",
+      "type": "table",
+      "label": "表格",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "table_out",
+      "type": "table",
+      "label": "表格",
+      "default": true
+    }
+  ],
+  "params_schema": [
+    {
+      "key": "columns",
+      "type": "columns",
+      "label": "关注字段",
+      "required": false
+    },
+    {
+      "key": "intent",
+      "type": "textarea",
+      "label": "标记意图",
+      "required": true
+    },
+    {
+      "key": "model",
+      "type": "model",
+      "label": "AI 模型",
+      "required": false
+    }
+  ],
+  "intent_templates": [
+    {
+      "id": "high_fare",
+      "label": "高票价乘客",
+      "description": "按 Fare 阈值打标",
+      "body": "新增布尔列 Flag：当 Fare 大于 {threshold} 时为 True，否则为 False",
+      "slots": [
+        {
+          "key": "threshold",
+          "label": "票价阈值",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "adult_female",
+      "label": "成年女性",
+      "description": "Sex + Age 组合条件",
+      "body": "新增布尔列 Flag：Sex 为 female 且 Age 大于等于 18 时为 True",
+      "slots": []
+    }
+  ],
+  "keywords": ["custom", "ai", "flag", "label"],
+  "icon": "ai",
+  "doc_md": "声明 `is_ai: true` 的自定义节点：无需 transform.py，运行时按意图调用模型生成沙箱代码（失败可自愈）。可用 `prompt.md` 约束生成风格。"
+}

@@ -1,0 +1,42 @@
+{
+  "id": "scale_numeric",
+  "label": "数值缩放",
+  "label_en": "Scale Numeric",
+  "description": "对选定数值列乘以缩放因子，其余列透传。",
+  "category": "custom",
+  "result_kind": "table",
+  "inputs": [
+    {
+      "id": "table_in",
+      "type": "table",
+      "label": "表格",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "id": "table_out",
+      "type": "table",
+      "label": "表格",
+      "default": true
+    }
+  ],
+  "params_schema": [
+    {
+      "key": "columns",
+      "type": "columns",
+      "label": "数值列",
+      "required": true
+    },
+    {
+      "key": "factor",
+      "type": "number",
+      "label": "缩放因子",
+      "required": false,
+      "default": 1.0
+    }
+  ],
+  "keywords": ["custom", "scale", "numeric"],
+  "icon": "custom",
+  "doc_md": "选择数值列并设置 `factor`，输出为缩放后的表。"
+}

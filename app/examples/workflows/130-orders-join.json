@@ -1,0 +1,215 @@
+{
+  "id": "130-orders-join",
+  "title": "订单客户关联分析",
+  "title_en": "Orders × Customers Join",
+  "description": "预置模板：订单表 left join 客户表 → 筛选已支付 → 按客群统计 → 图表与报告。演示双文件输入与 Join 节点。",
+  "description_en": "Starter: left-join orders to customers → filter paid → segment stats → chart & report. Demonstrates dual File Input + Join.",
+  "dataset": "orders.csv",
+  "extra_datasets": {
+    "CUSTOMERS_PATH": "customers.csv"
+  },
+  "graph": {
+    "format_version": 2,
+    "annotations": [
+      {
+        "type": "text",
+        "content": "上：订单；下：客户。Join 后筛 paid，再分析客群贡献。",
+        "content_en": "Top: orders; bottom: customers. After Join, keep paid rows and analyze segment contribution.",
+        "position": { "x": 40, "y": 20 }
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n_orders",
+        "type": "file_input",
+        "position": { "x": 40, "y": 80 },
+        "data": {
+          "label": "订单",
+          "label_en": "Orders",
+          "params": { "path": "{{DATASET_PATH}}" }
+        }
+      },
+      {
+        "id": "n_customers",
+        "type": "file_input",
+        "position": { "x": 40, "y": 240 },
+        "data": {
+          "label": "客户",
+          "label_en": "Customers",
+          "params": { "path": "{{CUSTOMERS_PATH}}" }
+        }
+      },
+      {
+        "id": "n_join",
+        "type": "join",
+        "position": { "x": 300, "y": 150 },
+        "data": {
+          "label": "订单⋈客户",
+          "label_en": "Orders ⋈ Customers",
+          "params": {
+            "how": "left",
+            "left_on": ["customer_id"],
+            "right_on": ["customer_id"],
+            "suffixes": "_ord,_cust",
+            "indicator": false
+          }
+        }
+      },
+      {
+        "id": "n_filter",
+        "type": "filter",
+        "position": { "x": 540, "y": 150 },
+        "data": {
+          "label": "仅已支付",
+          "label_en": "Paid only",
+          "params": {
+            "expression": "status == 'paid'",
+            "ai_intent": "只保留 status 为 paid 的订单行",
+            "ai_intent_en": "Keep only rows where status is paid"
+          }
+        }
+      },
+      {
+        "id": "n_groupby",
+        "type": "groupby",
+        "position": { "x": 780, "y": 150 },
+        "data": {
+          "label": "客群汇总",
+          "label_en": "Segment rollup",
+          "params": {
+            "by": ["segment"],
+            "values": ["amount"],
+            "aggs": ["sum", "mean", "count"],
+            "dropna": true
+          }
+        }
+      },
+      {
+        "id": "n_chart",
+        "type": "ai_chart",
+        "position": { "x": 1020, "y": 40 },
+        "data": {
+          "label": "客群贡献",
+          "label_en": "Segment contribution",
+          "params": {
+            "x": "segment",
+            "y": "amount_sum",
+            "intent": "柱状图比较各 segment 的 amount_sum（已支付订单金额合计）",
+            "intent_en": "Bar chart comparing amount_sum by segment for paid orders",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_analyze",
+        "type": "ai_analyze",
+        "position": { "x": 1020, "y": 240 },
+        "data": {
+          "label": "客群统计",
+          "label_en": "Segment stats",
+          "params": {
+            "intent": "比较企业/个人客群的订单数、金额合计与客单价（amount_mean）",
+            "intent_en": "Compare enterprise vs individual segments on order count, amount_sum, and amount_mean",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_report",
+        "type": "ai_report",
+        "position": { "x": 1260, "y": 150 },
+        "data": {
+          "label": "关联分析报告",
+          "label_en": "Join analysis report",
+          "params": {
+            "intent": "撰写订单-客户关联简报：已支付订单规模、客群贡献差异、高价值客群建议",
+            "intent_en": "Write a short orders-customers brief: paid volume, segment contribution, and high-value segment notes",
+            "model": "anthropic/claude-opus-5"
+          }
+        }
+      },
+      {
+        "id": "n_export",
+        "type": "export",
+        "position": { "x": 1500, "y": 150 },
+        "data": {
+          "label": "导出 PDF",
+          "label_en": "Export PDF",
+          "params": { "format": "pdf", "path": "{{EXPORT_PATH}}" }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "n_orders",
+        "sourceHandle": "table_out",
+        "target": "n_join",
+        "targetHandle": "left"
+      },
+      {
+        "id": "e2",
+        "source": "n_customers",
+        "sourceHandle": "table_out",
+        "target": "n_join",
+        "targetHandle": "right"
+      },
+      {
+        "id": "e3",
+        "source": "n_join",
+        "sourceHandle": "table_out",
+        "target": "n_filter",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e4",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_groupby",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e5",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_chart",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e6",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_analyze",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e7",
+        "source": "n_analyze",
+        "sourceHandle": "stats_out",
+        "target": "n_report",
+        "targetHandle": "stats_in"
+      },
+      {
+        "id": "e8",
+        "source": "n_chart",
+        "sourceHandle": "figure_out",
+        "target": "n_report",
+        "targetHandle": "figure_in"
+      },
+      {
+        "id": "e9",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_report",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e10",
+        "source": "n_report",
+        "sourceHandle": "text_out",
+        "target": "n_export",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

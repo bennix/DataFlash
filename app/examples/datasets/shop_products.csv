@@ -1,0 +1,9 @@
+product_id,category,product_name,price_tier
+P1,电子,无线耳机,mid
+P2,电子,充电宝,low
+P3,服饰,运动鞋,high
+P4,服饰,卫衣,mid
+P5,家居,台灯,low
+P6,家居,收纳箱,low
+P7,电子,显示器,high
+P8,服饰,牛仔裤,mid

@@ -1,0 +1,173 @@
+{
+  "id": "120-sales-groupby",
+  "title": "零售销售分组汇总",
+  "title_en": "Retail Sales GroupBy",
+  "description": "预置模板：读取零售订单 → AI 派生销售额 → 按地区×品类分组汇总 → 柱状图 → 简报 → 导出 PDF。演示 GroupBy 与 AI 节点串联。",
+  "description_en": "Starter: load retail orders → AI derive revenue → GroupBy region×category → bar chart → brief → export PDF. Demonstrates GroupBy with AI nodes.",
+  "dataset": "retail_sales.csv",
+  "graph": {
+    "format_version": 2,
+    "annotations": [
+      {
+        "type": "text",
+        "content": "先清洗派生 revenue，再 GroupBy 汇总，最后出图与报告。",
+        "content_en": "Derive revenue first, then GroupBy, then chart and report.",
+        "position": { "x": 40, "y": 20 }
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n_file",
+        "type": "file_input",
+        "position": { "x": 40, "y": 120 },
+        "data": {
+          "label": "零售订单",
+          "label_en": "Retail orders",
+          "params": { "path": "{{DATASET_PATH}}" }
+        }
+      },
+      {
+        "id": "n_clean",
+        "type": "ai_clean",
+        "position": { "x": 280, "y": 120 },
+        "data": {
+          "label": "派生销售额",
+          "label_en": "Derive revenue",
+          "params": {
+            "intent": "新增数值列 revenue = quantity * unit_price；将 region、category、channel 去首尾空格；order_date 解析为日期",
+            "intent_en": "Add numeric column revenue = quantity * unit_price; strip region/category/channel; parse order_date as datetime",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_groupby",
+        "type": "groupby",
+        "position": { "x": 520, "y": 120 },
+        "data": {
+          "label": "地区×品类汇总",
+          "label_en": "Region×category rollup",
+          "params": {
+            "by": ["region", "category"],
+            "values": ["revenue", "quantity"],
+            "aggs": ["sum", "mean", "count"],
+            "dropna": true
+          }
+        }
+      },
+      {
+        "id": "n_chart",
+        "type": "ai_chart",
+        "position": { "x": 760, "y": 40 },
+        "data": {
+          "label": "销售额柱状图",
+          "label_en": "Revenue bar chart",
+          "params": {
+            "x": "region",
+            "y": "revenue_sum",
+            "color": "category",
+            "intent": "分组柱状图：横轴 region，纵轴 revenue_sum，按 category 着色，展示各地区各品类销售额",
+            "intent_en": "Grouped bar chart: x=region, y=revenue_sum, color=category",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_analyze",
+        "type": "ai_analyze",
+        "position": { "x": 760, "y": 220 },
+        "data": {
+          "label": "汇总统计",
+          "label_en": "Rollup stats",
+          "params": {
+            "intent": "对分组汇总表做描述统计，指出销售额最高的地区与品类组合，以及平均客单价（revenue_mean）差异",
+            "intent_en": "Describe the rollup: top region×category by revenue_sum and differences in revenue_mean",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_report",
+        "type": "ai_report",
+        "position": { "x": 1000, "y": 120 },
+        "data": {
+          "label": "销售简报",
+          "label_en": "Sales brief",
+          "params": {
+            "intent": "撰写零售销售分组简报：总览、头部地区/品类、渠道外的品类结构建议（基于汇总表与图表）",
+            "intent_en": "Write a short retail rollup brief: overview, top region/category, and assortment notes from the table and chart",
+            "model": "anthropic/claude-opus-5"
+          }
+        }
+      },
+      {
+        "id": "n_export",
+        "type": "export",
+        "position": { "x": 1240, "y": 120 },
+        "data": {
+          "label": "导出 PDF",
+          "label_en": "Export PDF",
+          "params": { "format": "pdf", "path": "{{EXPORT_PATH}}" }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "n_file",
+        "sourceHandle": "table_out",
+        "target": "n_clean",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e2",
+        "source": "n_clean",
+        "sourceHandle": "table_out",
+        "target": "n_groupby",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e3",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_chart",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e4",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_analyze",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e5",
+        "source": "n_analyze",
+        "sourceHandle": "stats_out",
+        "target": "n_report",
+        "targetHandle": "stats_in"
+      },
+      {
+        "id": "e6",
+        "source": "n_chart",
+        "sourceHandle": "figure_out",
+        "target": "n_report",
+        "targetHandle": "figure_in"
+      },
+      {
+        "id": "e7",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_report",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e8",
+        "source": "n_report",
+        "sourceHandle": "text_out",
+        "target": "n_export",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

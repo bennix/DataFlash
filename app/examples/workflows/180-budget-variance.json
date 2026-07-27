@@ -1,0 +1,310 @@
+{
+  "id": "180-budget-variance",
+  "title": "部门预算实际差异分析",
+  "title_en": "Budget vs Actual Variance",
+  "description": "复杂模板：实际支出 ⋈ 预算 → AI 计算差异与差异率 → 筛超支部门月 → 部门汇总 → 双分支（柱状图+统计分析）→ 财务简报导出。",
+  "description_en": "Advanced: actuals ⋈ budget → AI variance fields → filter overspend → dept rollup → branched chart/stats → finance brief.",
+  "dataset": "actuals.csv",
+  "extra_datasets": {
+    "BUDGET_PATH": "budget.csv"
+  },
+  "graph": {
+    "format_version": 2,
+    "annotations": [
+      {
+        "type": "text",
+        "content": "按 dept+month 关联预算与实际，聚焦超支月，再汇总到部门。",
+        "content_en": "Join budget and actuals on dept+month, keep overspend months, then roll up by dept.",
+        "position": {
+          "x": 40,
+          "y": 15
+        }
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n_actuals",
+        "type": "file_input",
+        "position": {
+          "x": 40,
+          "y": 100
+        },
+        "data": {
+          "label": "实际支出",
+          "label_en": "Actuals",
+          "params": {
+            "path": "{{DATASET_PATH}}"
+          }
+        }
+      },
+      {
+        "id": "n_budget",
+        "type": "file_input",
+        "position": {
+          "x": 40,
+          "y": 280
+        },
+        "data": {
+          "label": "预算",
+          "label_en": "Budget",
+          "params": {
+            "path": "{{BUDGET_PATH}}"
+          }
+        }
+      },
+      {
+        "id": "n_join",
+        "type": "join",
+        "position": {
+          "x": 300,
+          "y": 180
+        },
+        "data": {
+          "label": "实际⋈预算",
+          "label_en": "Actuals ⋈ Budget",
+          "params": {
+            "how": "inner",
+            "left_on": [
+              "dept",
+              "month"
+            ],
+            "right_on": [
+              "dept",
+              "month"
+            ],
+            "suffixes": "_act,_bud"
+          }
+        }
+      },
+      {
+        "id": "n_clean",
+        "type": "ai_clean",
+        "position": {
+          "x": 560,
+          "y": 180
+        },
+        "data": {
+          "label": "计算差异",
+          "label_en": "Compute variance",
+          "params": {
+            "intent": "将 dept 去空格；确保 actual_amount、budget_amount、headcount 为数值；新增 variance = actual_amount - budget_amount 与 variance_pct = variance / budget_amount（供分析使用）",
+            "intent_en": "Strip dept; ensure amount columns numeric; add variance and variance_pct for analysis",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_filter",
+        "type": "filter",
+        "position": {
+          "x": 820,
+          "y": 180
+        },
+        "data": {
+          "label": "超支月份",
+          "label_en": "Overspend months",
+          "params": {
+            "expression": "actual_amount > budget_amount",
+            "ai_intent": "只保留实际支出大于预算的超支行",
+            "ai_intent_en": "Keep rows where actual_amount > budget_amount"
+          }
+        }
+      },
+      {
+        "id": "n_groupby",
+        "type": "groupby",
+        "position": {
+          "x": 1080,
+          "y": 180
+        },
+        "data": {
+          "label": "部门汇总",
+          "label_en": "Dept rollup",
+          "params": {
+            "by": [
+              "dept"
+            ],
+            "values": [
+              "actual_amount",
+              "budget_amount"
+            ],
+            "aggs": [
+              "sum",
+              "mean",
+              "count"
+            ],
+            "dropna": true
+          }
+        }
+      },
+      {
+        "id": "n_chart",
+        "type": "ai_chart",
+        "position": {
+          "x": 1340,
+          "y": 80
+        },
+        "data": {
+          "label": "超支对比",
+          "label_en": "Overspend bars",
+          "params": {
+            "x": "dept",
+            "y": "actual_amount_sum",
+            "intent": "柱状图比较各部门 actual_amount_sum，并在说明中对照 budget_amount_sum 的超支幅度",
+            "intent_en": "Bar chart of actual_amount_sum by dept; note overspend vs budget_amount_sum",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_analyze",
+        "type": "ai_analyze",
+        "position": {
+          "x": 1340,
+          "y": 280
+        },
+        "data": {
+          "label": "差异解读",
+          "label_en": "Variance read",
+          "params": {
+            "intent": "比较各部门 actual_amount_sum 与 budget_amount_sum，计算隐含超支，指出最需关注的部门，并给出 2 条预算管控建议",
+            "intent_en": "Compare actual_amount_sum vs budget_amount_sum by dept; flag top concern; two budget-control actions",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_preview",
+        "type": "preview",
+        "position": {
+          "x": 1080,
+          "y": 360
+        },
+        "data": {
+          "label": "超支明细预览",
+          "label_en": "Overspend preview",
+          "params": {}
+        }
+      },
+      {
+        "id": "n_report",
+        "type": "ai_report",
+        "position": {
+          "x": 1600,
+          "y": 180
+        },
+        "data": {
+          "label": "财务差异简报",
+          "label_en": "Finance variance brief",
+          "params": {
+            "intent": "撰写预算实际差异简报：超支范围、部门排名、可能原因假设、下季度管控建议",
+            "intent_en": "Write a budget-vs-actual brief: overspend scope, dept ranking, cause hypotheses, next-quarter controls",
+            "model": "anthropic/claude-opus-5"
+          }
+        }
+      },
+      {
+        "id": "n_export",
+        "type": "export",
+        "position": {
+          "x": 1840,
+          "y": 180
+        },
+        "data": {
+          "label": "导出 PDF",
+          "label_en": "Export PDF",
+          "params": {
+            "format": "pdf",
+            "path": "{{EXPORT_PATH}}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "n_actuals",
+        "sourceHandle": "table_out",
+        "target": "n_join",
+        "targetHandle": "left"
+      },
+      {
+        "id": "e2",
+        "source": "n_budget",
+        "sourceHandle": "table_out",
+        "target": "n_join",
+        "targetHandle": "right"
+      },
+      {
+        "id": "e3",
+        "source": "n_join",
+        "sourceHandle": "table_out",
+        "target": "n_clean",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e4",
+        "source": "n_clean",
+        "sourceHandle": "table_out",
+        "target": "n_filter",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e5",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_groupby",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e6",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_preview",
+        "targetHandle": "input"
+      },
+      {
+        "id": "e7",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_chart",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e8",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_analyze",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e9",
+        "source": "n_analyze",
+        "sourceHandle": "stats_out",
+        "target": "n_report",
+        "targetHandle": "stats_in"
+      },
+      {
+        "id": "e10",
+        "source": "n_chart",
+        "sourceHandle": "figure_out",
+        "target": "n_report",
+        "targetHandle": "figure_in"
+      },
+      {
+        "id": "e11",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_report",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e12",
+        "source": "n_report",
+        "sourceHandle": "text_out",
+        "target": "n_export",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

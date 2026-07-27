@@ -1,0 +1,200 @@
+{
+  "id": "150-web-trend",
+  "title": "网站流量趋势看板",
+  "title_en": "Web Traffic Trend",
+  "description": "预置模板：日维度流量表 → AI 解析日期 → 筛选付费渠道 → 趋势折线与转化分析 → 报告导出。演示时间序列可视化意图预填。",
+  "description_en": "Starter: daily web metrics → AI parse dates → filter paid channel → trend line + conversion stats → report. Prefills time-series chart intents.",
+  "dataset": "web_daily.csv",
+  "graph": {
+    "format_version": 2,
+    "annotations": [
+      {
+        "type": "text",
+        "content": "解析日期后可改筛选为 organic，对比两渠道趋势。",
+        "content_en": "After parsing dates, switch the filter to organic to compare channels.",
+        "position": {
+          "x": 40,
+          "y": 20
+        }
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n_file",
+        "type": "file_input",
+        "position": {
+          "x": 40,
+          "y": 120
+        },
+        "data": {
+          "label": "日流量",
+          "label_en": "Daily traffic",
+          "params": {
+            "path": "{{DATASET_PATH}}"
+          }
+        }
+      },
+      {
+        "id": "n_clean",
+        "type": "ai_clean",
+        "position": {
+          "x": 280,
+          "y": 120
+        },
+        "data": {
+          "label": "解析日期",
+          "label_en": "Parse dates",
+          "params": {
+            "intent": "将 date 解析为日期类型；channel 去空格并转小写；确保 sessions、users、revenue 为数值",
+            "intent_en": "Parse date as datetime; strip/lowercase channel; ensure sessions/users/revenue are numeric",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_filter",
+        "type": "filter",
+        "position": {
+          "x": 520,
+          "y": 120
+        },
+        "data": {
+          "label": "付费渠道",
+          "label_en": "Paid channel",
+          "params": {
+            "expression": "channel == 'paid'",
+            "ai_intent": "只保留 channel 为 paid 的行",
+            "ai_intent_en": "Keep only rows where channel is paid"
+          }
+        }
+      },
+      {
+        "id": "n_chart",
+        "type": "ai_chart",
+        "position": {
+          "x": 760,
+          "y": 40
+        },
+        "data": {
+          "label": "会话趋势",
+          "label_en": "Sessions trend",
+          "params": {
+            "x": "date",
+            "y": "sessions",
+            "intent": "折线图展示 paid 渠道按 date 的 sessions 变化，可叠加 revenue 为次轴或同图双线（若方便）",
+            "intent_en": "Line chart of sessions over date for paid; optionally overlay revenue",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_analyze",
+        "type": "ai_analyze",
+        "position": {
+          "x": 760,
+          "y": 220
+        },
+        "data": {
+          "label": "转化与营收",
+          "label_en": "Conversion & revenue",
+          "params": {
+            "intent": "统计 paid 渠道的 sessions、conversion_rate、bounce_rate、revenue：均值、总和、峰值日期",
+            "intent_en": "Summarize paid sessions, conversion_rate, bounce_rate, revenue: means, totals, and peak dates",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_report",
+        "type": "ai_report",
+        "position": {
+          "x": 1000,
+          "y": 120
+        },
+        "data": {
+          "label": "流量周报",
+          "label_en": "Traffic weekly",
+          "params": {
+            "intent": "撰写付费流量简报：趋势走向、转化与跳出、营收峰值日、下周优化建议 2 条",
+            "intent_en": "Write a paid-traffic brief: trend, conversion/bounce, revenue peak day, and two next-week actions",
+            "model": "anthropic/claude-opus-5"
+          }
+        }
+      },
+      {
+        "id": "n_export",
+        "type": "export",
+        "position": {
+          "x": 1240,
+          "y": 120
+        },
+        "data": {
+          "label": "导出 PDF",
+          "label_en": "Export PDF",
+          "params": {
+            "format": "pdf",
+            "path": "{{EXPORT_PATH}}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "n_file",
+        "sourceHandle": "table_out",
+        "target": "n_clean",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e2",
+        "source": "n_clean",
+        "sourceHandle": "table_out",
+        "target": "n_filter",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e3",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_chart",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e4",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_analyze",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e5",
+        "source": "n_analyze",
+        "sourceHandle": "stats_out",
+        "target": "n_report",
+        "targetHandle": "stats_in"
+      },
+      {
+        "id": "e6",
+        "source": "n_chart",
+        "sourceHandle": "figure_out",
+        "target": "n_report",
+        "targetHandle": "figure_in"
+      },
+      {
+        "id": "e7",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_report",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e8",
+        "source": "n_report",
+        "sourceHandle": "text_out",
+        "target": "n_export",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

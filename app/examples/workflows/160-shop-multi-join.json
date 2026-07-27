@@ -1,0 +1,342 @@
+{
+  "id": "160-shop-multi-join",
+  "title": "电商三表关联漏斗",
+  "title_en": "E-commerce Triple Join Funnel",
+  "description": "复杂模板：订单 ⋈ 用户 ⋈ 商品 → AI 派生 GMV → 筛已支付 → 城市×品类汇总与双分支图表/统计 → 报告导出。演示三次表串联与分叉分析。",
+  "description_en": "Advanced: orders ⋈ users ⋈ products → AI derive GMV → paid filter → city×category rollup with branched chart/stats → report. Shows multi-join + fork.",
+  "dataset": "shop_orders.csv",
+  "extra_datasets": {
+    "USERS_PATH": "shop_users.csv",
+    "PRODUCTS_PATH": "shop_products.csv"
+  },
+  "graph": {
+    "format_version": 2,
+    "annotations": [
+      {
+        "type": "text",
+        "content": "三表：订单→用户→商品。Join 后只看 paid，再按城市×品类拆解。",
+        "content_en": "Three tables: orders→users→products. Keep paid, then roll up by city×category.",
+        "position": {
+          "x": 20,
+          "y": 10
+        }
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n_orders",
+        "type": "file_input",
+        "position": {
+          "x": 20,
+          "y": 80
+        },
+        "data": {
+          "label": "订单",
+          "label_en": "Orders",
+          "params": {
+            "path": "{{DATASET_PATH}}"
+          }
+        }
+      },
+      {
+        "id": "n_users",
+        "type": "file_input",
+        "position": {
+          "x": 20,
+          "y": 220
+        },
+        "data": {
+          "label": "用户",
+          "label_en": "Users",
+          "params": {
+            "path": "{{USERS_PATH}}"
+          }
+        }
+      },
+      {
+        "id": "n_products",
+        "type": "file_input",
+        "position": {
+          "x": 20,
+          "y": 360
+        },
+        "data": {
+          "label": "商品",
+          "label_en": "Products",
+          "params": {
+            "path": "{{PRODUCTS_PATH}}"
+          }
+        }
+      },
+      {
+        "id": "n_join_user",
+        "type": "join",
+        "position": {
+          "x": 260,
+          "y": 140
+        },
+        "data": {
+          "label": "订单⋈用户",
+          "label_en": "Orders ⋈ Users",
+          "params": {
+            "how": "left",
+            "left_on": [
+              "user_id"
+            ],
+            "right_on": [
+              "user_id"
+            ],
+            "suffixes": "_o,_u"
+          }
+        }
+      },
+      {
+        "id": "n_join_prod",
+        "type": "join",
+        "position": {
+          "x": 500,
+          "y": 220
+        },
+        "data": {
+          "label": "再⋈商品",
+          "label_en": "⋈ Products",
+          "params": {
+            "how": "left",
+            "left_on": [
+              "product_id"
+            ],
+            "right_on": [
+              "product_id"
+            ],
+            "suffixes": "_l,_p"
+          }
+        }
+      },
+      {
+        "id": "n_clean",
+        "type": "ai_clean",
+        "position": {
+          "x": 740,
+          "y": 220
+        },
+        "data": {
+          "label": "清洗与校验",
+          "label_en": "Clean & validate",
+          "params": {
+            "intent": "确保 gmv 为数值（若缺失则 gmv=qty*unit_price）；将 city、category、channel、status 去空格；order_date 解析为日期；vip 统一为 Yes/No",
+            "intent_en": "Ensure gmv is numeric (derive qty*unit_price if missing); strip city/category/channel/status; parse order_date; normalize vip to Yes/No",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_filter",
+        "type": "filter",
+        "position": {
+          "x": 980,
+          "y": 220
+        },
+        "data": {
+          "label": "已支付订单",
+          "label_en": "Paid orders",
+          "params": {
+            "expression": "status == 'paid'",
+            "ai_intent": "只保留 status 为 paid 的订单",
+            "ai_intent_en": "Keep only paid orders"
+          }
+        }
+      },
+      {
+        "id": "n_groupby",
+        "type": "groupby",
+        "position": {
+          "x": 1220,
+          "y": 220
+        },
+        "data": {
+          "label": "城市×品类",
+          "label_en": "City×category",
+          "params": {
+            "by": [
+              "city",
+              "category"
+            ],
+            "values": [
+              "gmv",
+              "qty"
+            ],
+            "aggs": [
+              "sum",
+              "mean",
+              "count"
+            ],
+            "dropna": true
+          }
+        }
+      },
+      {
+        "id": "n_chart",
+        "type": "ai_chart",
+        "position": {
+          "x": 1460,
+          "y": 100
+        },
+        "data": {
+          "label": "GMV 柱状图",
+          "label_en": "GMV bars",
+          "params": {
+            "x": "city",
+            "y": "gmv_sum",
+            "color": "category",
+            "intent": "分组柱状图：横轴 city，纵轴 gmv_sum，按 category 着色",
+            "intent_en": "Grouped bars: x=city, y=gmv_sum, color=category",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_analyze",
+        "type": "ai_analyze",
+        "position": {
+          "x": 1460,
+          "y": 320
+        },
+        "data": {
+          "label": "结构洞察",
+          "label_en": "Structure insights",
+          "params": {
+            "intent": "指出 GMV 最高的城市×品类组合，比较 VIP 外的品类结构（基于汇总表字段），并给出 2 条运营建议",
+            "intent_en": "Find top city×category by gmv_sum and give two ops recommendations from the rollup",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_report",
+        "type": "ai_report",
+        "position": {
+          "x": 1700,
+          "y": 220
+        },
+        "data": {
+          "label": "电商简报",
+          "label_en": "Commerce brief",
+          "params": {
+            "intent": "撰写电商三表关联简报：支付订单规模、城市与品类贡献、头部组合与建议",
+            "intent_en": "Write a commerce brief: paid volume, city/category contribution, top combos and actions",
+            "model": "anthropic/claude-opus-5"
+          }
+        }
+      },
+      {
+        "id": "n_export",
+        "type": "export",
+        "position": {
+          "x": 1940,
+          "y": 220
+        },
+        "data": {
+          "label": "导出 PDF",
+          "label_en": "Export PDF",
+          "params": {
+            "format": "pdf",
+            "path": "{{EXPORT_PATH}}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "n_orders",
+        "sourceHandle": "table_out",
+        "target": "n_join_user",
+        "targetHandle": "left"
+      },
+      {
+        "id": "e2",
+        "source": "n_users",
+        "sourceHandle": "table_out",
+        "target": "n_join_user",
+        "targetHandle": "right"
+      },
+      {
+        "id": "e3",
+        "source": "n_join_user",
+        "sourceHandle": "table_out",
+        "target": "n_join_prod",
+        "targetHandle": "left"
+      },
+      {
+        "id": "e4",
+        "source": "n_products",
+        "sourceHandle": "table_out",
+        "target": "n_join_prod",
+        "targetHandle": "right"
+      },
+      {
+        "id": "e5",
+        "source": "n_join_prod",
+        "sourceHandle": "table_out",
+        "target": "n_clean",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e6",
+        "source": "n_clean",
+        "sourceHandle": "table_out",
+        "target": "n_filter",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e7",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_groupby",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e8",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_chart",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e9",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_analyze",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e10",
+        "source": "n_analyze",
+        "sourceHandle": "stats_out",
+        "target": "n_report",
+        "targetHandle": "stats_in"
+      },
+      {
+        "id": "e11",
+        "source": "n_chart",
+        "sourceHandle": "figure_out",
+        "target": "n_report",
+        "targetHandle": "figure_in"
+      },
+      {
+        "id": "e12",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_report",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e13",
+        "source": "n_report",
+        "sourceHandle": "text_out",
+        "target": "n_export",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

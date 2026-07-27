@@ -1,0 +1,288 @@
+{
+  "id": "170-support-sla",
+  "title": "客服工单 SLA 复盘",
+  "title_en": "Support Ticket SLA Review",
+  "description": "复杂模板：工单 ⋈ 坐席 → AI 规范化优先级/渠道并填补缺失 → 筛 P1/P2 已关闭 → 按团队汇总 SLA → 图表与满意度分析 → 报告。",
+  "description_en": "Advanced: tickets ⋈ agents → AI normalize priority/channel → keep closed P1/P2 → team SLA rollup → chart + CSAT analysis → report.",
+  "dataset": "tickets.csv",
+  "extra_datasets": {
+    "AGENTS_PATH": "agents.csv"
+  },
+  "graph": {
+    "format_version": 2,
+    "annotations": [
+      {
+        "type": "text",
+        "content": "Join 坐席后聚焦高优先级已关闭工单，按团队看解决时长与 CSAT。",
+        "content_en": "After joining agents, focus on closed high-priority tickets; roll up resolve time and CSAT by team.",
+        "position": {
+          "x": 40,
+          "y": 15
+        }
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n_tickets",
+        "type": "file_input",
+        "position": {
+          "x": 40,
+          "y": 100
+        },
+        "data": {
+          "label": "工单",
+          "label_en": "Tickets",
+          "params": {
+            "path": "{{DATASET_PATH}}"
+          }
+        }
+      },
+      {
+        "id": "n_agents",
+        "type": "file_input",
+        "position": {
+          "x": 40,
+          "y": 280
+        },
+        "data": {
+          "label": "坐席",
+          "label_en": "Agents",
+          "params": {
+            "path": "{{AGENTS_PATH}}"
+          }
+        }
+      },
+      {
+        "id": "n_join",
+        "type": "join",
+        "position": {
+          "x": 300,
+          "y": 180
+        },
+        "data": {
+          "label": "工单⋈坐席",
+          "label_en": "Tickets ⋈ Agents",
+          "params": {
+            "how": "left",
+            "left_on": [
+              "agent_id"
+            ],
+            "right_on": [
+              "agent_id"
+            ],
+            "suffixes": "_t,_a"
+          }
+        }
+      },
+      {
+        "id": "n_clean",
+        "type": "ai_clean",
+        "position": {
+          "x": 560,
+          "y": 180
+        },
+        "data": {
+          "label": "规范化字段",
+          "label_en": "Normalize fields",
+          "params": {
+            "intent": "将 priority 统一为大写 P1/P2/P3；channel、team、status 去空格并转小写；created_at 解析为日期时间；resolve_hours、csat 缺失用各自中位数填充（仅数值列）",
+            "intent_en": "Normalize priority to P1/P2/P3; strip/lowercase channel/team/status; parse created_at; fill resolve_hours/csat nulls with medians",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_filter",
+        "type": "filter",
+        "position": {
+          "x": 820,
+          "y": 180
+        },
+        "data": {
+          "label": "P1/P2 已关闭",
+          "label_en": "Closed P1/P2",
+          "params": {
+            "expression": "status == 'closed' and priority in ['P1','P2']",
+            "ai_intent": "只保留已关闭且优先级为 P1 或 P2 的工单",
+            "ai_intent_en": "Keep closed tickets with priority P1 or P2"
+          }
+        }
+      },
+      {
+        "id": "n_groupby",
+        "type": "groupby",
+        "position": {
+          "x": 1080,
+          "y": 180
+        },
+        "data": {
+          "label": "团队 SLA",
+          "label_en": "Team SLA",
+          "params": {
+            "by": [
+              "team"
+            ],
+            "values": [
+              "resolve_hours",
+              "csat"
+            ],
+            "aggs": [
+              "mean",
+              "median",
+              "count"
+            ],
+            "dropna": true
+          }
+        }
+      },
+      {
+        "id": "n_chart",
+        "type": "ai_chart",
+        "position": {
+          "x": 1340,
+          "y": 80
+        },
+        "data": {
+          "label": "解决时长",
+          "label_en": "Resolve time",
+          "params": {
+            "x": "team",
+            "y": "resolve_hours_mean",
+            "intent": "柱状图比较各 team 的 resolve_hours_mean，可标注 count",
+            "intent_en": "Bar chart of resolve_hours_mean by team",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_analyze",
+        "type": "ai_analyze",
+        "position": {
+          "x": 1340,
+          "y": 280
+        },
+        "data": {
+          "label": "SLA/CSAT",
+          "label_en": "SLA / CSAT",
+          "params": {
+            "intent": "比较各团队平均解决时长与 CSAT，指出 SLA 风险最高与体验最好的团队，并给 2 条排班/培训建议",
+            "intent_en": "Compare team mean resolve time vs CSAT; flag riskiest and best teams; two staffing/training actions",
+            "model": "anthropic/claude-sonnet-4.6"
+          }
+        }
+      },
+      {
+        "id": "n_report",
+        "type": "ai_report",
+        "position": {
+          "x": 1600,
+          "y": 180
+        },
+        "data": {
+          "label": "SLA 复盘报告",
+          "label_en": "SLA review report",
+          "params": {
+            "intent": "撰写客服 SLA 复盘：样本量、团队对比、高优工单体验问题、下周改进动作",
+            "intent_en": "Write an SLA review: sample size, team comparison, P1/P2 experience issues, next-week actions",
+            "model": "anthropic/claude-opus-5"
+          }
+        }
+      },
+      {
+        "id": "n_export",
+        "type": "export",
+        "position": {
+          "x": 1840,
+          "y": 180
+        },
+        "data": {
+          "label": "导出 PDF",
+          "label_en": "Export PDF",
+          "params": {
+            "format": "pdf",
+            "path": "{{EXPORT_PATH}}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "n_tickets",
+        "sourceHandle": "table_out",
+        "target": "n_join",
+        "targetHandle": "left"
+      },
+      {
+        "id": "e2",
+        "source": "n_agents",
+        "sourceHandle": "table_out",
+        "target": "n_join",
+        "targetHandle": "right"
+      },
+      {
+        "id": "e3",
+        "source": "n_join",
+        "sourceHandle": "table_out",
+        "target": "n_clean",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e4",
+        "source": "n_clean",
+        "sourceHandle": "table_out",
+        "target": "n_filter",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e5",
+        "source": "n_filter",
+        "sourceHandle": "matched",
+        "target": "n_groupby",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e6",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_chart",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e7",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_analyze",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e8",
+        "source": "n_analyze",
+        "sourceHandle": "stats_out",
+        "target": "n_report",
+        "targetHandle": "stats_in"
+      },
+      {
+        "id": "e9",
+        "source": "n_chart",
+        "sourceHandle": "figure_out",
+        "target": "n_report",
+        "targetHandle": "figure_in"
+      },
+      {
+        "id": "e10",
+        "source": "n_groupby",
+        "sourceHandle": "table_out",
+        "target": "n_report",
+        "targetHandle": "table_in"
+      },
+      {
+        "id": "e11",
+        "source": "n_report",
+        "sourceHandle": "text_out",
+        "target": "n_export",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

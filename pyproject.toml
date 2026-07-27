@@ -1,0 +1,39 @@
+[project]
+name = "dataflash"
+version = "0.1.0"
+description = "AI-driven data analysis & visualization pipeline app (Flask + React Flow)"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.1",
+    "pandas>=2.2",
+    "numpy>=2.0",
+    "pyarrow>=17.0",
+    "plotly>=6.0",
+    "kaleido>=1.0",
+    "openai>=1.60",
+    "cryptography>=44.0",
+    "markdown>=3.7",
+    "openpyxl>=3.1",
+    "weasyprint>=63.0",
+    "tabulate>=0.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-timeout>=2.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+timeout = 300
+filterwarnings = ["ignore::DeprecationWarning"]

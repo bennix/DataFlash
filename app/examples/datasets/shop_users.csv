@@ -1,0 +1,13 @@
+user_id,city,channel,signup_date,vip
+U01,上海,organic,2023-11-02,Yes
+U02,北京,paid,2023-12-15,No
+U03,广州,organic,2024-01-08,Yes
+U04,深圳,referral,2024-01-20,No
+U05,杭州,paid,2024-02-03,Yes
+U06,成都,organic,2024-02-14,No
+U07,上海,paid,2024-03-01,Yes
+U08,武汉,referral,2024-03-12,No
+U09,北京,organic,2024-03-22,No
+U10,广州,paid,2024-04-05,Yes
+U11,深圳,organic,2024-04-18,No
+U12,杭州,referral,2024-05-01,Yes

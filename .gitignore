@@ -1,0 +1,55 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.coverage
+htmlcov/
+.mypy_cache/
+.tox/
+
+# Secrets & credentials — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.keyfile
+**/secrets/
+credentials.json
+.secret/
+.dataflash/
+
+# Runtime / local instance (DB may contain encrypted API keys)
+.cache/
+data/
+instance/
+*.sqlite3
+*.db
+
+# Local agent / IDE tooling (not product source)
+.memsearch/
+.serena/
+.claude/
+.cursor/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+app/static/dist/
+
+# Large local media (demo recordings)
+media/*.mp4
+media/*.mov
+media/*.webm
+*.mp4
+*.mov
+
+# Local demo recordings (any name)
+media/

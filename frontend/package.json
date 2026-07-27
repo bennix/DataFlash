@@ -1,0 +1,29 @@
+{
+  "name": "dataflash-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b --noEmit 2>/dev/null || tsc --noEmit; vite build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.3.5",
+    "pdfjs-dist": "^6.1.200",
+    "plotly.js-dist-min": "^3.7.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/plotly.js-dist-min": "^2.3.4",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.1",
+    "vitest": "^2.1.8"
+  }
+}
