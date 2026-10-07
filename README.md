@@ -1,5 +1,15 @@
 # DataFlash
 
+## ICDM 2026 Teen Research Track paper
+
+**DataFlash: A Secure, Intent-Driven Visual Workflow Framework for Autonomous Data Mining and Analytics**  
+Minyang Han and Zhiping Xu · Paper ID: S30229
+
+[Read the camera-ready paper / 阅读最终论文](paper/DataFlash_S30229_CameraReady.pdf)
+
+Author-prepared camera-ready manuscript. This is not the IEEE Xplore publisher-formatted version.
+
+
 本地 AI 数据分析流水线：拖拽节点构图 → 清洗 / 分析 / 可视化 / 报告 → 导出 MD / PDF / HTML。
 
 ![DataFlash demo](docs/assets/demo.gif)
